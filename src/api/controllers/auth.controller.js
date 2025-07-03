@@ -28,8 +28,19 @@ const signupAgent = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Signup error:", err.message);
-    return res.status(500).json({ message: "Internal server error." });
+    console.error("Signup error:", err);
+
+  if (err.name === "ValidationError") {
+    const messages = Object.values(err.errors).map(val => val.message);
+    return res.status(400).json({ message: messages.join(", ") });
+  }
+
+  if (err.code === 11000) {
+    return res.status(409).json({ message: "Email already exists." });
+  }
+
+  // Fallback: internal server error
+  return res.status(500).json({ message: "Internal server error." });
   }
 };
 
