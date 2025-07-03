@@ -15,9 +15,8 @@ app.use(express.json());
 // Health check
 app.get("/health", (req, res) => res.status(200).send("OK"));
 
-// Test Route
-const testRoutes = require("./api/routes/test");
-app.use("/api", testRoutes);
+const authRoutes = require("./api/routes/auth.routes");
+app.use("/api/auth", authRoutes);
 
 // Connect to MongoDB
 connectDB();
