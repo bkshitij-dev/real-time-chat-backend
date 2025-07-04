@@ -18,6 +18,9 @@ app.get("/health", (req, res) => res.status(200).send("OK"));
 const authRoutes = require("./api/routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
+const testRoutes = require("./api/routes/test");
+app.use("/api", testRoutes);
+
 // Connect to MongoDB
 connectDB();
 
