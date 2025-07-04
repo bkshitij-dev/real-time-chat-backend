@@ -3,6 +3,8 @@ require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
+const { Server } = require("socket.io");
+
 const connectDB = require("./config/db");
 
 const app = express();
@@ -30,6 +32,23 @@ process.on("SIGINT", async () => {
   await mongoose.disconnect();
   console.log("MongoDB connection closed.");
   process.exit(0);
+});
+
+// Initialize Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+// Basic socket connection test
+io.on("connection", (socket) => {
+  console.log("New client connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
 });
 
 // Start server
