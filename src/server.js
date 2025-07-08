@@ -3,7 +3,7 @@ const http = require("http");
 const cors = require("cors");
 
 const connectDB = require("./config/db");
-const setupSocket = require("./sockets/socket");
+const setupSocket = require("./sockets");
 const authRoutes = require("./api/routes/auth.routes");
 const testRoutes = require("./api/routes/test");
 
