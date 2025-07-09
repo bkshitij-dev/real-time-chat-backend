@@ -1,5 +1,7 @@
 const { Server } = require("socket.io");
 
+const Message = require("../models/message.model");
+
 let io;
 
 function setupSocket(server) {
@@ -19,7 +21,7 @@ function setupSocket(server) {
       console.log(`Socket ${socket.id} joined session ${sessionId}`);
     });
 
-    socket.on("message:send", (message) => {
+    socket.on("message:send", async (message) => {
       const { sessionId, content, senderId, senderType } = message;
 
       if (!sessionId || !content || !senderId || !senderType) {
@@ -29,16 +31,36 @@ function setupSocket(server) {
 
       console.log(`Message from ${senderType} (${senderId}) in session ${sessionId}: ${content}`);
 
-      // Broadcast to everyone in room (including sender for now)
-      io.to(sessionId).emit("message:receive", {
-        sessionId,
-        content,
-        senderId,
-        senderType,
-        timestamp: new Date().toISOString(),
-      });
-    });
+      try {
+        const savedMessage = await Message.create({
+          sessionId,
+          content,
+          senderId,
+          senderType,
+          status: "delivered",
+        });
 
+        const payload = {
+          sessionId,
+          content,
+          senderId,
+          senderType,
+          timestamp: savedMessage.createdAt,
+        };
+      
+      // Send to all clients in room
+      io.to(sessionId).emit("message:receive", payload);
+
+      // Acknowledge to sender
+      socket.emit("message:ack", {
+        messageId: savedMessage._id,
+        status: "delivered",
+      });
+    } catch (err) {
+      console.error("DB Error while saving message:", err);
+      socket.emit("message:error", { message: "Message could not be saved." });
+    }
+    });
 
     socket.on("ping", () => {
       console.log("Received 'ping' from client");
