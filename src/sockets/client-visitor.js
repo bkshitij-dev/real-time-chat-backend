@@ -9,8 +9,18 @@ socket.on("connect", () => {
 });
 
 socket.on("message:receive", (msg) => {
-  console.log("Visitor received:", msg);
+  const isSelf = msg.senderId === "visitor001";
+  if (isSelf) {
+    console.log("Visitor sent:", msg);
+  } else {
+    console.log("Visitor received:", msg);
+  }
 });
+
+socket.on("message:ack", (data) => {
+  console.log("Server acknowledged message:", data);
+});
+
 
 setTimeout(() => {
   socket.emit("message:send", {
