@@ -2,10 +2,12 @@ const { io } = require("socket.io-client");
 const socket = io("http://localhost:3000");
 
 const sessionId = "abc123";
+const senderType = "visitor";
+const senderId = "visitor001";
 
 socket.on("connect", () => {
   console.log("Visitor connected:", socket.id);
-  socket.emit("join", sessionId);
+  socket.emit("join", { sessionId, senderType, senderId });
 });
 
 socket.on("message:receive", (msg) => {

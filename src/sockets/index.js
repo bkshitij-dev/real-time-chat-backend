@@ -1,6 +1,7 @@
 const { Server } = require("socket.io");
 
 const Message = require("../models/message.model");
+const { assignSession, getSession, removeSession } = require("../utils/sessionManager");
 
 let io;
 
@@ -16,9 +17,23 @@ function setupSocket(server) {
     console.log("New client connected:", socket.id);
 
     // JOIN ROOM HANDLER
-    socket.on("join", (sessionId) => {
+    socket.on("join", ({ sessionId, senderType, senderId }) => {
+      if (!sessionId || !senderType || !senderId) {
+        console.warn("Missing sessionId, senderType, or senderId in join payload");
+        return;
+      }
       socket.join(sessionId);
-      console.log(`Socket ${socket.id} joined session ${sessionId}`);
+      console.log(`Socket ${socket.id}: ${senderId} joined session ${sessionId} as ${senderType}`);
+
+      const existing = getSession(sessionId) || {};
+
+      if (senderType === "agent") {
+        assignSession(sessionId, senderId, existing.visitorId || null);
+      } else if (senderType === "visitor") {
+        assignSession(sessionId, existing.agentId || null, senderId);
+      }
+
+      console.log("Current Session Map:", getSession(sessionId));
     });
 
     socket.on("message:send", async (message) => {
